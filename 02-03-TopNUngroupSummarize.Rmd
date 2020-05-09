@@ -1,0 +1,130 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+The top_n verb DplyR
+
+What if instead of aggregatin each state, we wanted to find only the largest county in each state?
+DplyR's top n is very useful for keeping the most extreme observations from each group. 
+
+Like summarize(), top_n operates on a grouped table. 
+
+=====================================================================================================
+top_n
+```{r}
+counties_selected <- counties %>%
+  select(state, county, population, unemployment, income)
+
+counties_selected %>%
+  group_by(state) %>%
+  top_n(1, population) #find the county with the highest population in each state.
+```
+The function takes two arguments: the number observations we want from each group, and the column to weight by.
+=====================================================================================================
+Highest unemployment
+```{r}
+counties_selected %>%
+  group_by(state) %>%
+  top_n(1, unemployment)
+
+#Numbers of observations
+counties_selected %>%
+  group_by(state) %>%
+  top_n(3, unemployment) #< 3 observations for each state
+```
+ Instead of looking at population, we could get the county with the highest unemployment rate from each state
+by changing the second argument to unemployment. 
+=====================================================================================================
+Selecting a county from each region
+```{r}
+# Group by region and find the greatest number of citizens who walk to work
+counties_selected %>%
+  group_by(region)%>%
+    top_n(1,walk)
+```
+# Groups:   region [4]
+  region        state        county                 metro    population  walk
+  <chr>         <chr>        <chr>                  <chr>         <dbl> <dbl>
+1 West          Alaska       Aleutians East Borough Nonmetro       3304  71.2
+2 Northeast     New York     New York               Metro       1629507  20.7
+3 North Central North Dakota McIntosh               Nonmetro       2759  17.5
+4 South         Virginia     Lexington city         Nonmetro       7071  31.7
+=====================================================================================================
+Finding the highest-income state in each region
+```{r}
+counties_selected %>%
+  group_by(region, state) %>%
+  # Calculate average income
+  summarize(average_income = mean(income)) %>%
+  # Find the highest income state in each region
+  top_n(1,average_income)
+```
+# A tibble: 4 x 3
+# Groups:   region [4]
+  region        state        average_income
+  <chr>         <chr>                 <dbl>
+1 North Central North Dakota         55575.
+2 Northeast     New Jersey           73014.
+3 South         Maryland             69200.
+4 West          Alaska               65125.
+=====================================================================================================
+Using summarize, top_n, and count together
+```{r}
+# Extract the most populated row for each state
+counties_selected %>%
+  group_by(state, metro) %>%
+  summarize(total_pop = sum(population)) 
+```
+# A tibble: 97 x 3
+# Groups:   state [50]
+   state      metro    total_pop
+   <chr>      <chr>        <dbl>
+ 1 Alabama    Metro      3671377
+ 2 Alabama    Nonmetro   1159243
+ 3 Alaska     Metro       494990
+ 4 Alaska     Nonmetro    230471
+ 5 Arizona    Metro      6295145
+ 6 Arizona    Nonmetro    346783
+ 7 Arkansas   Metro      1806867
+ 8 Arkansas   Nonmetro   1151341
+ 9 California Metro     37587429
+10 California Nonmetro    834035
+```{r}
+# Extract the most populated row for each state
+counties_selected %>%
+  group_by(state, metro) %>%
+  summarize(total_pop = sum(population)) %>%
+  top_n(1, total_pop)
+```
+# A tibble: 50 x 3
+# Groups:   state [50]
+   state       metro total_pop
+   <chr>       <chr>     <dbl>
+ 1 Alabama     Metro   3671377
+ 2 Alaska      Metro    494990
+ 3 Arizona     Metro   6295145
+ 4 Arkansas    Metro   1806867
+ 5 California  Metro  37587429
+ 6 Colorado    Metro   4590896
+ 7 Connecticut Metro   3406918
+ 8 Delaware    Metro    926454
+ 9 Florida     Metro  18941821
+10 Georgia     Metro   8233886
+=====================================================================================================
+Using Summarize, top_n, and count together
+```{r}
+# Count the states with more people in Metro or Nonmetro areas
+counties_selected %>%
+  group_by(state, metro) %>%
+  summarize(total_pop = sum(population)) %>%
+  top_n(1, total_pop) %>%
+  ungroup() %>% 
+  count(metro)
+```
+ A tibble: 2 x 2
+  metro        n
+  <chr>    <int>
+1 Metro       44
+2 Nonmetro     6
+
