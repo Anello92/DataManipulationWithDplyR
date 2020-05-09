@@ -19,7 +19,8 @@ We are able to do a calculation at the same time: creating a new column called f
 This saves somes effort compared to doing both a MUTATE and SELECT.
 ```{r}
 counties %>%
-  transmute(state, county, fraction_men = men/population) #Like select, we've dropped all other column and only kept these three. 
+  transmute(state, county, fraction_men = men/population) #Like select, we've dropped all other column and 
+  only kept these three. 
 ```
 
 As another example, we've already worked with the unemployment column that contains the unemployment rate. 
@@ -40,7 +41,8 @@ counties %>%
   # Sort density in ascending order 
   arrange(density)
 ```
-===============================================================================================================================
+=========================================================================================================================
+
 Choosing among the four verbs
 In this chapter you've learned about the four verbs: select, mutate, transmute, and rename. Here, you'll choose the appropriate verb for each situation. You won't need to change anything inside the parentheses.
 
