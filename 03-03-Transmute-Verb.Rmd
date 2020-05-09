@@ -1,6 +1,6 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output: R_notebook
 ---
 
 The transmute() verb:
@@ -9,7 +9,8 @@ Transmute is like a combination of select and mutate: getting back just a subset
 - Combination: select & mutate
 - Returns a subset of column that are transformed and changed
 
-============================================================================================================================================
+=========================================================================================================================
+
 Select and calculate:
 
 The transmute() give us the control of what variables we keep,  what NEW variables we calculate, and what to DROP.
@@ -26,7 +27,8 @@ As another example, we've already worked with the unemployment column that conta
 counties %>%
   transmute(state, county, population, unemployed_people = population * unemployment / 100)
 ```
-============================================================================================================================================
+=========================================================================================================================
+
 Using transmute
 The transmute verb allows we control which variables we keep, which variables we calculate, and which variables to drop.
 ```{r}
