@@ -1,0 +1,30 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Select helpers DplyR
+
+Selecting Columns
+
+Using the select verb, we can answer interesting questions about our dataset by focusing in on related groups of verbs. The colon (:) is useful for getting many columns at a time.
+```{r}
+# Glimpse the counties table
+glimpse(counties)
+
+counties %>%
+  # Select state, county, population, and industry-related columns
+  select(state, county, population, professional:production) %>%
+  # Arrange service in descending order 
+  arrange(desc(service))
+```
+==========================================================================================================================================
+Select Helpers
+Another select helper is starts_with() and ends_with(), which finds the columns that start andend with a particular string.
+```{r}
+counties %>%
+  # Select the state, county, population, and those ending with "work"
+  select(state, county, population, ends_with("work")) %>%
+  # Filter for counties that have at least 50% of people engaged in public work
+  filter(public_work >= 50)
+```
