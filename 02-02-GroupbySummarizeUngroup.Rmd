@@ -1,0 +1,150 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+GroupBy, Summarize, Ungroup - Data Manipulation with DplyR
+
+======================================================================================================
+Summarize() take many observations and turns them into ONE observation. 
+If we wanted to find th total population of the United States, we could use the summarize()
+```{r}
+counties %>%
+  summarize(total_population = sum(population))
+```
+======================================================================================================
+Aggregate and Summarize
+It's possible to define multiple variables in a summarize, aggregating each in different ways.  
+We can fint the total population, but also the average unemployment rate, using the verb mean()
+```{r}
+counties %>%
+  summarize(total_population = sum(population),
+            average_unemployment = mean(unemployment))
+```
+======================================================================================================
+Aggregate within groups
+Summarizing the entire table is useful, but, ideally, we want to aggregate within groups, such as to 
+find the toal population within each state.
+```{r}
+counties %>%
+    group_by(state) %>%
+    summarize(total_pop = sum(population),
+              average_unemployment = sum(unemployment))
+```
+======================================================================================================
+Arrange
+It's useful to add an additional step of an arrange(), so that we can focus on the MOST NOTABLE examples.
+```{r}
+counties %>%
+  group_by(state)%>%
+  summarize(total_pop = sum(population),
+            average_unemployment = mean(unemployment)) %>%
+  arrange(desc(average_unemployment`))
+```
+Group By
+```{r}
+counties %>%
+  group_by(state, metro) %>%
+  summarize(total_pop = sum(population))
+```
+Ungroup
+If we don't want to keep state as a group, we can add another dplyr verb: ungroup()
+```{r}
+counties %>%
+  group(state, metro) %>%
+  summarize(total_pop = sum(population)) %>%
+  ungroup()
+```
+======================================================================================================
+Summarizing: useful for collapsing a large dataset into a single observation
+```{r}
+# Summarize to find minimum population, maximum unemployment, and average income
+counties_selected %>%
+  summarize(min_population = min(population),
+            max_unemployment = max(unemployment),
+            average_income = mean(income))
+```
+======================================================================================================
+Summarizing by state
+```{r}
+# Group by state and find the total area and population
+counties_selected %>%
+  group_by(state) %>%
+  summarize(total_area = sum(land_area),
+            total_population = sum(population))
+```
+# A tibble: 50 x 3
+   state       total_area total_population
+   <chr>            <dbl>            <dbl>
+ 1 Alabama         50645.          4830620
+ 2 Alaska         553560.           725461
+ 3 Arizona        113594.          6641928
+ 4 Arkansas        52035.          2958208
+ 5 California     155779.         38421464
+ 6 Colorado       103642.          5278906
+ 7 Connecticut      4842.          3593222
+ 8 Delaware         1949.           926454
+ 9 Florida         53625.         19645772
+10 Georgia         57514.         10006693
+# ... with 40 more rows
+```{r}
+# Add a density column, then sort in descending order
+counties_selected %>%
+  group_by(state) %>%
+  summarize(total_area = sum(land_area),
+            total_population = sum(population)) %>%
+  mutate(density = total_population / total_area) %>%
+  arrange(desc(density))
+```
+# A tibble: 50 x 4
+   state         total_area total_population density
+   <chr>              <dbl>            <dbl>   <dbl>
+ 1 New Jersey         7354.          8904413   1211.
+ 2 Rhode Island       1034.          1053661   1019.
+ 3 Massachusetts      7800.          6705586    860.
+ 4 Connecticut        4842.          3593222    742.
+ 5 Maryland           9707.          5930538    611.
+ 6 Delaware           1949.           926454    475.
+ 7 New York          47126.         19673174    417.
+ 8 Florida           53625.         19645772    366.
+ 9 Pennsylvania      44743.         12779559    286.
+10 Ohio              40861.         11575977    283.
+# ... with 40 more rows
+======================================================================================================
+Summarizing by state and region
+```{r}
+# Summarize to find the total population
+counties_selected %>%
+  group_by(region, state) %>%
+  summarize(total_pop = sum(population)) 
+```
+# A tibble: 4 x 4
+  region        total_pop average_pop median_pop
+  <chr>             <dbl>       <dbl>      <dbl>
+1 North Central  67532245      64072.     20241 
+2 Northeast      55989520     258016.    103855 
+3 South         117927776      83048.     26252.
+4 West           74395812     166434.     21396
+```{r}
+# Calculate the average_pop and median_pop columns 
+counties_selected %>%
+  group_by(region, state) %>%
+  summarize(total_pop = sum(population)) %>%
+  summarize(average_pop = mean(total_pop),
+            median_pop = median(total_pop))
+```
+# A tibble: 50 x 3
+# Groups:   region [4]
+   region        state        total_pop
+   <chr>         <chr>            <dbl>
+ 1 North Central Illinois      12873761
+ 2 North Central Indiana        6568645
+ 3 North Central Iowa           3093526
+ 4 North Central Kansas         2892987
+ 5 North Central Michigan       9900571
+ 6 North Central Minnesota      5419171
+ 7 North Central Missouri       6045448
+ 8 North Central Nebraska       1869365
+ 9 North Central North Dakota    721640
+10 North Central Ohio          11575977
+# ... with 40 more rows
