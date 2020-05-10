@@ -1,0 +1,226 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+install.packages("dplyr)
+install.packages("ggplot2")
+library(ggplot2)
+library(dplyr) #dplyr verbs are useful for exploring data
+
+Grouped Mutates 
+Window Functions
+
+We will reintroduce the ggplot2 package, which we can load with library(ggplot2). 
+There are three parts to a ggplot2: the data, the aesthetics, and the layers. 
+
+```{r}
+babynames_filtered <- babynames %>%
+  filter(name == "Amy")
+```
+
+We can call ggplot with this filtered object, and aesthetics x = year and y = babies
+
+```{r}
+ggplot(babynames_filtered, aes(x = year, y = babies)) + geom_line()
+```
+========================================================================================
+Filter for multiple names
+Besides filtering for just one name, we could filter for multiple names using the % operator
+```{r}
+babynames_multiple <- babynames %>%
+  filter(name %in% c("Leonardo", "Sarah"))
+```
+========================================================================================
+When was each name most common?
+We can use the top_n(), along with group_by(), to find the year in which each name was most common
+```{r}
+babynames %>%
+  group_by(name) %>%
+  top_n(1, number)
+```
+========================================================================================
+Filtering and arranging for one year
+```{r}
+babynames %>%
+  # Filter for the year 1990
+  filter(year == 1990) %>%
+  # Sort the number column in descending order 
+  arrange(desc(number))
+```
+========================================================================================
+Using top_n with babynames
+We could use filter() and arrange() to find the most common names in one year. 
+However, we could also use group_by and top_n to find the most common name in every year.
+```{r}
+# Find the most common name in each year
+babynames %>%
+  group_by(year) %>%
+  top_n(1, number)
+```
+# Groups:   year [28]
+    year name  number
+   <dbl> <chr>  <int>
+ 1  1880 John    9701
+ 2  1885 Mary    9166
+ 3  1890 Mary   12113
+ 4  1895 Mary   13493
+ 5  1900 Mary   16781
+ 6  1905 Mary   16135
+ 7  1910 Mary   22947
+ 8  1915 Mary   58346
+ 9  1920 Mary   71175
+10  1925 Mary   70857
+=======================================================================================
+Visualizing names with ggplot2
+```{r}
+# Filter for the names Steven, Thomas, and Matthew 
+selected_names <- babynames %>%
+  filter(name %in% c("Steven","Thomas", "Matthew"))
+```
+A tibble: 84 x 3
+    year name    number
+   <dbl> <chr>    <int>
+ 1  1880 Matthew    113
+ 2  1880 Steven      17
+ 3  1880 Thomas    2542
+ 4  1885 Matthew    111
+ 5  1885 Steven      21
+ 6  1885 Thomas    2275
+ 7  1890 Matthew     86
+ 8  1890 Steven      20
+ 9  1890 Thomas    2209
+10  1895 Matthew    112
+# ... with 74 more rows
+
+```{r}
+# Plot the names using a different color for each name
+ggplot(selected_names, aes(x = year, y = number, color = name)) +
+  geom_line()
+```
+
+=======================================================================================
+Grouped mutates - data manipulation with dplyr
+
+Review: group_by() and summarize()
+Tell dplyr to group by the year column then summarize to calculate the sum of the n column
+This gets a table with one row for every year.
+```{r}
+babynames %>%
+  group_by (year) %>%
+  summarize(year_total = sum(number))
+```
+We want to get the total number of people born in each year. For that, change the summarize to a mutate.
+
+=======================================================================================
+
+Combining group_by() and mutate()
+```{r}
+babnames %>%
+  group_by (year) %>%
+  mutate(year_total = sum(number)) #Grouped Mutate
+```
+Just like group_by() and summarize() work well together
+group_by() and mutate are a great pair. 
+
+=======================================================================================
+
+ungroup()
+
+```{r}
+babynames %>%
+  group_by(year) %>%
+  mutate(year_total = sum(number)) %>%
+  ungroup() %>%
+  mutate(fraction = number / year_total) #the fraction of people born in each year that have each name
+```
+
+=======================================================================================
+
+Finding the year each name is most common
+
+We are going to explore which year each name was the most common.
+To do this, you'll be combining the grouped mutate approach with a top_n.
+```{r}
+# Find the year each name is most common 
+babynames %>%
+  group_by(year) %>%
+  mutate(year_total = sum(number)) %>%
+  ungroup() %>%
+  mutate(fraction = number / year_total) %>%
+  group_by(name) %>%
+  top_n(1, fraction)
+```
+# Groups:   name [48,040]
+    year name      number year_total  fraction
+   <dbl> <chr>      <int>      <int>     <dbl>
+ 1  1880 Abbott         5     201478 0.0000248
+ 2  1880 Abe           50     201478 0.000248 
+ 3  1880 Abner         27     201478 0.000134 
+ 4  1880 Adelbert      28     201478 0.000139 
+ 5  1880 Adella        26     201478 0.000129 
+ 6  1880 Adolf          6     201478 0.0000298
+ 7  1880 Adolph        93     201478 0.000462 
+ 8  1880 Agustus        5     201478 0.0000248
+ 9  1880 Albert      1493     201478 0.00741  
+10  1880 Albertina      7     201478 0.0000347
+
+=======================================================================================
+
+Visualizing the normalized change in popularity
+
+We picked a few names and calculated each of them as a fraction of their peak. 
+
+```{r}
+# Filter for the names Steven, Thomas, and Matthew
+names_filtered <- names_normalized %>%
+  filter(name %in% c("Steven", "Thomas", "Matthew"))
+
+# Visualize these names over time
+ggplot(names_filtered, aes(x = year, y = fraction_max, color = name)) +
+  geom_line()
+```
+
+=======================================================================================
+
+Window function
+
+This function takes a vector, and returns another vector of the same length. 
+We will be learning to use the lag() function. We can lag a vector, which means moving each item to the right by one.
+```{r}
+babynames_fraction %>%
+  filter(name == "Matthew") %>%
+  arrange(year) %>%
+  mutate(difference = fraction - lag(fraction))
+```
+We want to take each fraction, and subtract the "lagged" fraction, with fraction minus lag(fraction).
+
+=======================================================================================
+
+Using ratios to describe the frequency of a name
+
+We've learned how to find the difference in the frequency of a baby name between consecutive years. 
+What if instead of finding the difference, we find the ratio?
+```{r}
+babynames_fraction %>%
+  # Arrange the data in order of name, then year 
+  arrange(name, year) %>%
+  # Group the data by name
+  group_by(name) %>%
+  # Add a ratio column that contains the ratio between each year 
+  mutate(ratio = fraction / lag(fraction))
+```
+# Groups:   name [48,040]
+    year name    number year_total   fraction  ratio
+   <dbl> <chr>    <int>      <int>      <dbl>  <dbl>
+ 1  2010 Aaban        9    3672066 0.00000245 NA    
+ 2  2015 Aaban       15    3648781 0.00000411  1.68 
+ 3  1995 Aadam        6    3652750 0.00000164 NA    
+ 4  2000 Aadam        6    3767293 0.00000159  0.970
+ 5  2005 Aadam        6    3828460 0.00000157  0.984
+ 6  2010 Aadam        7    3672066 0.00000191  1.22 
+ 7  2015 Aadam       22    3648781 0.00000603  3.16 
+ 8  2010 Aadan       11    3672066 0.00000300 NA    
+ 9  2015 Aadan       10    3648781 0.00000274  0.915
+10  2000 Aadarsh      5    3767293 0.00000133 NA    
+
+======================================================================================= Data Manipulation with dplyr .
